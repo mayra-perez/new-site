@@ -1,0 +1,503 @@
+---
+title: Data Science for Sauce Entrepreneurs
+author: Mayra Pérez
+date: '2022-08-01'
+slug: data-science-for-sauce-entrepreneurs
+categories: []
+tags: []
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+thrive_products <- read_excel("~/Desktop/thrive-4.xlsx")
+```
+
+## Preparation / Background
+
+Established companies in the natural bottled sauce industry pose barriers to entry for new companies looking to enter the market with fewer resources and brand awareness. A trusted company image may motivate existing customers to pay premium prices for products perceived as high quality. Similarly, strong supplier networks may support low-cost production and thus more desirable and accessible products. New companies looking to introduce a viable substitute in this contested space must strike the balance between a product that is novel yet comparable.
+
+Understanding target consumers is critical for new companies looking to enter a competitive market space. According to software company *SAS*, customer-generated data can deliver “valuable insights into consumer habits and lifestyle preferences” (Customer Analytics: What It Is and Why It Matters, 2022). Consumer ratings on similar products offered by competitors can provide intelligence on where companies are leading and where they are lacking.
+
+## Desired Yield / Proposal
+
+Market research indicates consumers of natural food products are increasingly health- and planet-conscious. They purchase products that are clean, indulgent, and economical. For Millennial consumers, food is also an extension of experience and representation (Yue, 2019). The aim of this project was to identify features, and consumer values to further inform the development of a differentiation strategy in a saturated market.
+ 
+## Bite-Sized Data
+ 
+Data is everywhere, yet there comes a time when the information we need is not readily available and/or embedded in a website. For inexperienced hackers or clumsy coders (like me), sourcing those details through web scraping techniques translates into hours of research, loss of emotional regulation, and bloodshot eyes.
+
+The dataset for this project was pulled from Thrive Market, an e-commerce retailer specializing in natural and organic foods. Using base R programming, rvest web harvesting functions, and tons of Excel manipulation, over 34,000 lines of code were generated to extract a small dataset of 322 condiments and sauces and about 16 features for each product. Below are descriptions of each feature.
+
+- **id**: (character) unique product identifier presented as a numerical value
+- **name**: (character) product name
+- **brand**: (character) product manufacturer
+- **description**: (character) detailed product description
+- **price**: (double class) product price, which may be less than the Manufacturer's Suggested Retail Price (MSRP)
+- **size**: (character) product size in terms of weight and/or packaging
+- **value_awards**: (character) metadata on awards conferred, such as Certified Organic
+- **values_diet**: (character) metadata on diet values, such as Vegan
+- **values_social**: (character) metadata on social values, such as AAPI-owned
+- **values_health**: (character) metadata on health values, such as Gluten-Free
+- **sales_rank**: (double class) sales rank based on how well the product is selling relative to other products in the same category
+- **ratings_rank**: (double class) product rank based on how well the product is valued or rated relative to other products in the same category
+- **rating_count**: (double class) number of ratings
+- **rating_avg**: (double class) average rating score
+- **review_score**: (double class) average review score
+- **review_count**: (double class) number of reviews
+- **allergens**: (character) list of allergens
+- **ingredients**: (character) list of product ingredients
+
+## Missing Ingredients / Limitations
+
+I was initially excited to have extracted data representing all the products in a single Thrive Market category. However, it was clear from the onset that there are two major limitations.
+
+### Size + Bias
+
+The first limitation of the Thrive Market data set is its small size and the potential bias. In the article *Reducing the Effect of Sample Bias for Small Data Sets with Double-Weighted Support Vector Transfer Regression*, the authors explain that "small data sets are an extremely challenging problem in the machine learning (ML) realm, and in specific, in regression scenarios, as the lack of relevant data can lead to ML models that have large bias" (Luo and Paal, 2020). Cassie Kozyrkov, Chief Decision Scientist at Google, conceptualizes this complex term as "systematic lopsidedness" which means the results can be misleading (Kozyrkov, 2020).
+
+For my particular data set, what follows are the most relevant types of biases and ways to address them (Suresh and Guttag, 2019):
+
+#### *Representation Bias*
+
+Representation bias is the result of a data set that does not evenly represent all groups. Some groups may be over- or under-represented. Representation bias is the biggest concern for this project.
+
+The Thrive Market dataset certainly represents all products within a specific category at the e-commerce site, but it is not balanced. For instance, some brands are over-represented while others are under-represented. A product may be popular because it's widely available on the site and, therefore, successful due to higher brand awareness. For to consider the effect of Brand over- or under-representation on the overall popularity of a product. 
+
+#### *Evaluation Bias*
+
+Evaluation bias is the result of methods that are not applicable to a target population. For the purposes of this project, evaluation bias is less of a concern.
+
+Thrive Market attracts health- and planet-conscious consumers. It will be important to highlight that the results of this project may not be applicable to products aimed at another type of consumer. For instance, in answering the research question (which features are predictive of customer satisfaction?), the insights may not be relevant to products sold at other e-commerce retailers, such as Amazon or Wal-Mart.
+
+### Quality
+
+The second limitation is the untidiness of the "raw" Thrive Market data set. However, this is a common issue in data science. I devoted about 85% of my time preparing the data set for engineering and modeling. For example, the various categories of customer values were indistinguishable. It was difficult to differentiate between awards, diet, and social values. Categories that appeared in one column, such as Gluten-Free, for one product, appeared in another column for other products. Consequently, I collapsed all values into a single values category as these appear on the e-commerce site under a single category.
+
+## The Sauces Aisle / Exploratory Data Analysis
+
+While the Thrive Market dataset was bite-sized, there were a mouthful of details that supported feature engineering. What follows is a glimpse of key insights.
+ 
+### There are 58 brands in the data set. Some brands are over-represented.
+
+```{r, include = FALSE}
+brands_viz <- thrive_products %>%
+  count(brand) %>%
+  top_n(5)
+```
+
+```{r, include = FALSE}
+brands <- ggplot(brands_viz, mapping = aes(x = reorder(brand, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Top brands by products available", subtitle = "About 42% of products are sold by 6 companies") +
+  xlab("") +
+  ylab("Frequency") +
+  theme_minimal()
+```
+
+```{r}
+brands
+```
+
+### Thrive Market delivers on healthy values. There's something for everyone.
+
+```{r, include=FALSE}
+library(readxl)
+thrive_values <- read_excel("~/Desktop/thrive-values.xlsx")
+thrive_values <- thrive_values %>% select(-...1)
+```
+
+```{r, include = FALSE}
+## Top 5 values
+values_viz <- thrive_values %>%
+  count(values) %>%
+  top_n(5)
+
+values <- ggplot(values_viz, mapping = aes(x = reorder(values, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Top diet, social, and health values", subtitle = "About 98% of products have a Non-GMO pledge") +
+  xlab("") +
+  ylab("Frequency") +
+  theme_minimal()
+```
+
+```{r}
+values
+```
+
+### Few products contain allergens.
+
+```{r, include=FALSE}
+library(readxl)
+thrive_allergens <- read_excel("~/Desktop/thrive-allergens2.xlsx", sheet = 1)
+thrive_allergens <- thrive_allergens %>% select(-...1)
+```
+
+```{r, include=FALSE}
+allergens_viz <- thrive_allergens %>%
+  count(allergens_tidy) %>%
+  drop_na(.) %>%
+  top_n(5)
+
+allergens <- ggplot(allergens_viz, mapping = aes(x = reorder(allergens_tidy, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Top allergens by products available", subtitle = "Only 23% of products report allergens") +
+  xlab("") +
+  ylab("Frequency") +
+  theme_minimal()
+```
+
+```{r}
+allergens
+```
+
+### We need a tidytext lexicon for food descriptions. How many more of these words can be filter out during preprocessing?
+
+```{r, include=FALSE}
+library(tidytext)
+
+desc_words <- thrive_products %>%
+  select(name, description)
+
+desc_words <- desc_words %>%
+  unnest_tokens(word, description) %>%
+  count(word, sort = TRUE)
+
+data("stop_words")
+desc_words <- desc_words %>%
+  anti_join(stop_words)
+```
+
+```{r, include=FALSE}
+desc_viz <- desc_words %>%
+  drop_na(.) %>%
+  top_n(5)
+
+descriptors <- ggplot(desc_viz, mapping = aes(x = reorder(word, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Top descriptors by products available", subtitle = "Sauce, free, and ingredients are likely stop words") +
+  xlab("") +
+  ylab("Frequency") +
+  theme_minimal()
+```
+
+```{r}
+descriptors
+```
+
+### Price is skewed. The price per ounce ranges from $0.12 to $3.82.
+
+```{r, include = FALSE}
+price <- ggplot(thrive_products, aes(unit_price)) +
+  geom_histogram() +
+  xlab("Price per Ounce") +
+  ylab("") +
+  theme_minimal()
+```
+
+```{r}
+price
+```
+
+### Thrive Market reviewers are generally happy. The vast majority of products are rated between 4 and 5.
+
+```{r, include = FALSE}
+rating <- ggplot(thrive_products, aes(rating_avg)) +
+geom_histogram() +
+  xlab("Average Rating") +
+  ylab("") +
+  theme_minimal()
+```
+
+```{r}
+rating
+```
+
+### Sea salt, water, (table) salt, citric acid, and garlic are essentials for sauce making.
+
+```{r, include=FALSE}
+library(readxl)
+thrive_ingredients <- read_excel("~/Desktop/thrive-ingredients.xlsx", sheet = 1)
+ingredient_words <- thrive_ingredients %>% count(ingredients, sort = TRUE)
+```
+
+```{r, include = FALSE}
+library(wordcloud2)
+
+ingred_cloud <- wordcloud2(data = ingredient_words, size = 1.5, color = "random-dark", shuffle = FALSE, shape = "circle")
+```
+
+```{r}
+ingred_cloud
+```
+
+## Tiny Models, Big Dreams / Simple Regressions
+
+I ran a series of linear and multiple regressions to determine the relationship between individual Thrive Market features and specific outcomes: price, engagement (number of ratings), and customer satisfactions (average rating). What follows are key insights drawn from a series of linear and multiple regressions.
+
+### Price
+
+```{r, include=FALSE}
+m1 <- thrive_products %>%
+  mutate(lpr_jar=log(unit_price*12)) %>%
+  mutate(non_GMO=str_detect(values, "Non-GMO")) %>%
+  mutate(gf=str_detect(values, "Gluten-Free")) %>%
+  mutate(veggie=str_detect(values, "Vegetarian")) %>%
+  mutate(vegan=str_detect(values, "Vegan")) %>%
+  mutate(plant_based=str_detect(values, "Plant-Based")) %>%
+  mutate(organic=str_detect(description, "organic")) %>%
+  mutate(flavor=str_detect(description, "flavor")) %>%
+  select(lpr_jar, rating_count, rating_avg, non_GMO, gf, veggie, vegan, plant_based, organic, flavor, values_count, ingredients_count, allergens_count) %>%
+  drop_na(.)
+```
+
+#### **Promoting gluten-free as a value justifies an 18% increase in price.**
+
+Gluten-free as a value has a positive relationship with price. The linear model above demonstrates that for every one-unit increase in gluten-free (as a promoted value), the price increases by about 18%. For example, a sauce entrepreneur would be justified in charging an additional $1.80 to a $10.00 jar of sauce if it is gluten-free.
+
+```{r, include=FALSE}
+library(moderndive)
+model1a <- lm(lpr_jar ~ gf, data = m1)
+```
+
+```{r}
+get_regression_table(model1a)
+```
+
+```{r}
+((exp(0.163)-1)*100) ## Outcome is log; exponentiate the coefficient to determine % increase
+```
+
+#### **Including “flavor” in the product description justifies a 3% increase in price.**
+
+The linear model indicates that for every one-unit increase in “flavor” as a product descriptor, there is a 3% increase in price. In other words, a sauce maker would be justified in charging an additional 30¢ to a $10.00 jar of sauce if it includes “flavor” in the product description.
+
+```{r, include=FALSE}
+library(moderndive)
+model1b <- lm(lpr_jar ~ flavor, data = m1)
+```
+
+```{r}
+get_regression_table(model1b)
+```
+
+```{r, include=FALSE}
+((exp(0.030)-1)*100) ## Flavor
+```
+
+#### **More ingredients justifies a 1.2% increase in price.**
+
+The linear model shows that for every one-unit increase in ingredients, there is a 1.2% increase in price. For instance, a sauce entrepreneur would be justified in charging $0.12 for each added ingredient found in a $10.00 jar of sauce.
+
+```{r, include=FALSE}
+library(moderndive)
+model1c <- lm(lpr_jar ~ ingredients_count, data = m1)
+```
+
+```{r}
+get_regression_table(model1c)
+```
+
+```{r, include=FALSE}
+((exp(0.012)-1)*100) ## Flavor
+```
+
+#### **Other features produced a decrease in price.**
+
+The remaining features demonstrated a negative relationship to price. Individual linear models on each value revealed the following pattern:
+
+* For every one-unit increase in non-GMO as a promoted value, prices decreases by 17%.
+* For plant-based, price decreases by about 20%.
+* For veggie, price decreases by 21%.
+* For vegan, price decreases by 25%.
+* For organic, price decreases by 14%.
+* For number of values, price decreases by 3%.
+
+```{r, include=FALSE}
+((exp(-0.181)-1)*100) ## Non-GMO
+((exp(-0.220)-1)*100) ## Plant-Based
+((exp(-0.235)-1)*100) ## Veggie
+((exp(-0.293)-1)*100) ## Vegan
+((exp(-0.150)-1)*100) ## Organic
+((exp(-0.031)-1)*100) ## Number of values
+```
+
+#### **Combining important features can further drive up price!**
+
+The effect of individual features created curiosity about their cumulative impact on price. *How does having a gluten-free value and “flavor” in the product description affect price?*
+
+The multiple regression suggests that upholding gluten-free as a value and “flavor” as a descriptor increases price by a total of 21%. We would be justified in adding $2.10 to a $10.00 jar of sauce if we advertise gluten-free values and use “flavor” in the product description.
+
+```{r, include=FALSE}
+library(moderndive)
+model1d <- lm(lpr_jar ~ gf+flavor, data = m1)
+```
+
+```{r}
+get_regression_table(model1d)
+```
+
+```{r, include=FALSE}
+((exp(0.162)-1)*100) ## GF
+((exp(0.025)-1)*100) ## Flavor
+```
+
+### Engagement
+
+```{r, include=FALSE}
+m2 <- thrive_products %>%
+  mutate(pr_jar=(unit_price*12)) %>%
+  mutate(lrating_count=log(rating_count)) %>%
+  mutate(non_GMO=str_detect(values, "Non-GMO")) %>%
+  mutate(gf=str_detect(values, "Gluten-Free")) %>%
+  mutate(veggie=str_detect(values, "Vegetarian")) %>%
+  mutate(vegan=str_detect(values, "Vegan")) %>%
+  mutate(plant_based=str_detect(values, "Plant-Based")) %>%
+  mutate(organic=str_detect(description, "organic")) %>%
+  mutate(flavor=str_detect(description, "flavor")) %>%
+  select(pr_jar, lrating_count, rating_avg, non_GMO, gf, veggie, vegan, plant_based, organic, flavor, values_count, ingredients_count, allergens_count) %>%
+  drop_na(.)
+```
+
+#### The crowds have lots to say about non-GMO, organic, veggie, gluten-free, or flavorful products!
+
+There were quite a few positive relationships between individual features and engagement or the number of total ratings.
+
+* A non-GMO value increases engagement by 130%.
+* For organic, engagement increases by 89%.
+* For veggie, engagement increases by 60%.
+* For gluten-free, engagement increases by 27%.
+* For flavor, engagement increases by 22%.
+
+```{r, include=FALSE}
+library(moderndive)
+model2a <- lm(lrating_count ~ non_GMO, data = m2)
+```
+
+```{r}
+get_regression_table(model2a)
+```
+
+```{r}
+((exp(0.835)-1)*100) ## Non-GMO
+```
+
+#### Again, combining features can further drive up engagement!
+
+```{r, include=FALSE}
+library(moderndive)
+model2b <- lm(lrating_count ~ gf+flavor, data = m2)
+```
+
+```{r}
+get_regression_table(model2b)
+```
+
+```{r}
+((exp(0.2302)-1)*100) # Gluten-Free
+((exp(0.193)-1)*100) # Flavor
+```
+
+### Customer Satisfaction
+
+```{r, include=FALSE}
+m3 <- thrive_products %>%
+  mutate(pr_jar=(unit_price*12)) %>%
+  mutate(lrating_avg=log(rating_avg)) %>%
+  mutate(non_GMO=str_detect(values, "Non-GMO")) %>%
+  mutate(gf=str_detect(values, "Gluten-Free")) %>%
+  mutate(veggie=str_detect(values, "Vegetarian")) %>%
+  mutate(vegan=str_detect(values, "Vegan")) %>%
+  mutate(plant_based=str_detect(values, "Plant-Based")) %>%
+  mutate(organic=str_detect(description, "organic")) %>%
+  mutate(flavor=str_detect(description, "flavor")) %>%
+  select(pr_jar, rating_count, lrating_avg, non_GMO, gf, veggie, vegan, plant_based, organic, flavor, values_count, ingredients_count, allergens_count) %>%
+  drop_na(.)
+```
+
+#### **Thrive Market customers enjoy organic and flavorful products the most!**
+
+* A product described as organic has a 3% increase in customer satisfaction compared to a conventional product.
+* A product described as flavorful has a 2.2% increase in customer satisfaction compared to a product not labeled as such.
+
+```{r, include=FALSE}
+library(moderndive)
+model3a <- lm(lrating_avg ~ organic, data = m3)
+```
+
+```{r}
+get_regression_table(model3a)
+```
+
+```{r}
+((exp(0.029)-1)*100) # Organic
+```
+
+```{r, include=FALSE}
+library(moderndive)
+model3b <- lm(lrating_avg ~ flavor, data = m3)
+```
+
+```{r}
+get_regression_table(model3b)
+```
+
+```{r}
+((exp(0.022)-1)*100) # Flavor
+```
+
+#### **Beware! A product advertised as gluten-free and described as flavorful drives down rating by 0.7%!**
+
+```{r, include=FALSE}
+library(moderndive)
+model3c <- lm(lrating_avg ~ gf+flavor, data = m3)
+```
+
+```{r}
+get_regression_table(model3c)
+```
+
+```{r}
+((exp(-0.031)-1)*100) # Gluten-Free
+((exp(0.023)-1)*100) # Flavor
+```
+
+#### **Thrive Market customers are less satisfied with products promoted as gluten-free and non-GMO.**
+
+* A product advertised as gluten-free has a 3% decrease in customer satisfaction.
+* A product labeled as non-GMO has a 1.1% decrease in customer satisfaction.
+
+```{r, include=FALSE}
+library(moderndive)
+model3d <- lm(lrating_avg ~ gf, data = m3)
+```
+
+```{r}
+get_regression_table(model3d)
+```
+
+```{r, include=FALSE}
+library(moderndive)
+model3e <- lm(lrating_avg ~ non_GMO, data = m3)
+```
+
+```{r}
+get_regression_table(model3e)
+```
+
+## Conclusion
+
+The goal of this project was to analyze product features and customer ratings on 322 condiments and sauces available at Thrive Market. The higher aspiration of developing a differentiation strategy may have been too ambitious for a nugget-sized dataset. It may be attained with a gargantuan dataset or more robust variables. Nevertheless, the results provided some intelligence on the impact of values on price, drivers of engagement, and even contributors to high ratings. 
+
+### **The Final Recipe for Success:**
+Promote your product as gluten-free and flavorful to:
+
+* increase price by 21%.
+* increase engagement by 47%
+* but this will decrease average rating by 0.7%.

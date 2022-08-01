@@ -1,0 +1,286 @@
+---
+title: Data Science for Sauce Entrepreneurs
+author: Mayra Pérez
+date: '2022-08-01'
+slug: data-science-for-sauce-entrepreneurs
+categories: []
+tags: []
+---
+
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<link href="{{< blogdown/postref >}}index_files/wordcloud2/wordcloud.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/wordcloud2/wordcloud2-all.js"></script>
+<script src="{{< blogdown/postref >}}index_files/wordcloud2/hover.js"></script>
+<script src="{{< blogdown/postref >}}index_files/wordcloud2-binding/wordcloud2.js"></script>
+
+
+<div id="preparation-background" class="section level2">
+<h2>Preparation / Background</h2>
+<p>Established companies in the natural bottled sauce industry pose barriers to entry for new companies looking to enter the market with fewer resources and brand awareness. A trusted company image may motivate existing customers to pay premium prices for products perceived as high quality. Similarly, strong supplier networks may support low-cost production and thus more desirable and accessible products. New companies looking to introduce a viable substitute in this contested space must strike the balance between a product that is novel yet comparable.</p>
+<p>Understanding target consumers is critical for new companies looking to enter a competitive market space. According to software company <em>SAS</em>, customer-generated data can deliver “valuable insights into consumer habits and lifestyle preferences” (Customer Analytics: What It Is and Why It Matters, 2022). Consumer ratings on similar products offered by competitors can provide intelligence on where companies are leading and where they are lacking.</p>
+</div>
+<div id="desired-yield-proposal" class="section level2">
+<h2>Desired Yield / Proposal</h2>
+<p>Market research indicates consumers of natural food products are increasingly health- and planet-conscious. They purchase products that are clean, indulgent, and economical. For Millennial consumers, food is also an extension of experience and representation (Yue, 2019). The aim of this project was to identify features, and consumer values to further inform the development of a differentiation strategy in a saturated market.</p>
+</div>
+<div id="bite-sized-data" class="section level2">
+<h2>Bite-Sized Data</h2>
+<p>Data is everywhere, yet there comes a time when the information we need is not readily available and/or embedded in a website. For inexperienced hackers or clumsy coders (like me), sourcing those details through web scraping techniques translates into hours of research, loss of emotional regulation, and bloodshot eyes.</p>
+<p>The dataset for this project was pulled from Thrive Market, an e-commerce retailer specializing in natural and organic foods. Using base R programming, rvest web harvesting functions, and tons of Excel manipulation, over 34,000 lines of code were generated to extract a small dataset of 322 condiments and sauces and about 16 features for each product. Below are descriptions of each feature.</p>
+<ul>
+<li><strong>id</strong>: (character) unique product identifier presented as a numerical value</li>
+<li><strong>name</strong>: (character) product name</li>
+<li><strong>brand</strong>: (character) product manufacturer</li>
+<li><strong>description</strong>: (character) detailed product description</li>
+<li><strong>price</strong>: (double class) product price, which may be less than the Manufacturer’s Suggested Retail Price (MSRP)</li>
+<li><strong>size</strong>: (character) product size in terms of weight and/or packaging</li>
+<li><strong>value_awards</strong>: (character) metadata on awards conferred, such as Certified Organic</li>
+<li><strong>values_diet</strong>: (character) metadata on diet values, such as Vegan</li>
+<li><strong>values_social</strong>: (character) metadata on social values, such as AAPI-owned</li>
+<li><strong>values_health</strong>: (character) metadata on health values, such as Gluten-Free</li>
+<li><strong>sales_rank</strong>: (double class) sales rank based on how well the product is selling relative to other products in the same category</li>
+<li><strong>ratings_rank</strong>: (double class) product rank based on how well the product is valued or rated relative to other products in the same category</li>
+<li><strong>rating_count</strong>: (double class) number of ratings</li>
+<li><strong>rating_avg</strong>: (double class) average rating score</li>
+<li><strong>review_score</strong>: (double class) average review score</li>
+<li><strong>review_count</strong>: (double class) number of reviews</li>
+<li><strong>allergens</strong>: (character) list of allergens</li>
+<li><strong>ingredients</strong>: (character) list of product ingredients</li>
+</ul>
+</div>
+<div id="missing-ingredients-limitations" class="section level2">
+<h2>Missing Ingredients / Limitations</h2>
+<p>I was initially excited to have extracted data representing all the products in a single Thrive Market category. However, it was clear from the onset that there are two major limitations.</p>
+<div id="size-bias" class="section level3">
+<h3>Size + Bias</h3>
+<p>The first limitation of the Thrive Market data set is its small size and the potential bias. In the article <em>Reducing the Effect of Sample Bias for Small Data Sets with Double-Weighted Support Vector Transfer Regression</em>, the authors explain that “small data sets are an extremely challenging problem in the machine learning (ML) realm, and in specific, in regression scenarios, as the lack of relevant data can lead to ML models that have large bias” (Luo and Paal, 2020). Cassie Kozyrkov, Chief Decision Scientist at Google, conceptualizes this complex term as “systematic lopsidedness” which means the results can be misleading (Kozyrkov, 2020).</p>
+<p>For my particular data set, what follows are the most relevant types of biases and ways to address them (Suresh and Guttag, 2019):</p>
+<div id="representation-bias" class="section level4">
+<h4><em>Representation Bias</em></h4>
+<p>Representation bias is the result of a data set that does not evenly represent all groups. Some groups may be over- or under-represented. Representation bias is the biggest concern for this project.</p>
+<p>The Thrive Market dataset certainly represents all products within a specific category at the e-commerce site, but it is not balanced. For instance, some brands are over-represented while others are under-represented. A product may be popular because it’s widely available on the site and, therefore, successful due to higher brand awareness. For to consider the effect of Brand over- or under-representation on the overall popularity of a product.</p>
+</div>
+<div id="evaluation-bias" class="section level4">
+<h4><em>Evaluation Bias</em></h4>
+<p>Evaluation bias is the result of methods that are not applicable to a target population. For the purposes of this project, evaluation bias is less of a concern.</p>
+<p>Thrive Market attracts health- and planet-conscious consumers. It will be important to highlight that the results of this project may not be applicable to products aimed at another type of consumer. For instance, in answering the research question (which features are predictive of customer satisfaction?), the insights may not be relevant to products sold at other e-commerce retailers, such as Amazon or Wal-Mart.</p>
+</div>
+</div>
+<div id="quality" class="section level3">
+<h3>Quality</h3>
+<p>The second limitation is the untidiness of the “raw” Thrive Market data set. However, this is a common issue in data science. I devoted about 85% of my time preparing the data set for engineering and modeling. For example, the various categories of customer values were indistinguishable. It was difficult to differentiate between awards, diet, and social values. Categories that appeared in one column, such as Gluten-Free, for one product, appeared in another column for other products. Consequently, I collapsed all values into a single values category as these appear on the e-commerce site under a single category.</p>
+</div>
+</div>
+<div id="the-sauces-aisle-exploratory-data-analysis" class="section level2">
+<h2>The Sauces Aisle / Exploratory Data Analysis</h2>
+<p>While the Thrive Market dataset was bite-sized, there were a mouthful of details that supported feature engineering. What follows is a glimpse of key insights.</p>
+<div id="there-are-58-brands-in-the-data-set.-some-brands-are-over-represented." class="section level3">
+<h3>There are 58 brands in the data set. Some brands are over-represented.</h3>
+<pre class="r"><code>brands</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="thrive-market-delivers-on-healthy-values.-theres-something-for-everyone." class="section level3">
+<h3>Thrive Market delivers on healthy values. There’s something for everyone.</h3>
+<pre class="r"><code>values</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="few-products-contain-allergens." class="section level3">
+<h3>Few products contain allergens.</h3>
+<pre class="r"><code>allergens</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="we-need-a-tidytext-lexicon-for-food-descriptions.-how-many-more-of-these-words-can-be-filter-out-during-preprocessing" class="section level3">
+<h3>We need a tidytext lexicon for food descriptions. How many more of these words can be filter out during preprocessing?</h3>
+<pre class="r"><code>descriptors</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+<div id="price-is-skewed.-the-price-per-ounce-ranges-from-0.12-to-3.82." class="section level3">
+<h3>Price is skewed. The price per ounce ranges from $0.12 to $3.82.</h3>
+<pre class="r"><code>price</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="thrive-market-reviewers-are-generally-happy.-the-vast-majority-of-products-are-rated-between-4-and-5." class="section level3">
+<h3>Thrive Market reviewers are generally happy. The vast majority of products are rated between 4 and 5.</h3>
+<pre class="r"><code>rating</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="sea-salt-water-table-salt-citric-acid-and-garlic-are-essentials-for-sauce-making." class="section level3">
+<h3>Sea salt, water, (table) salt, citric acid, and garlic are essentials for sauce making.</h3>
+<pre class="r"><code>ingred_cloud</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="wordcloud2 html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"word":["Sea Salt","Water","Salt","Citric Acid","Garlic","Organic Garlic Powder","Black Pepper","Xanthan Gum","Spices","Organic Garlic","Avocado Oil","Organic Black Pepper","Extra Virgin Olive Oil","Organic Onion Powder","Organic Distilled Vinegar","Lactic Acid","Onion Powder","Sunflower Oil","Calcium Chloride","Organic Spices","Organic Apple Cider Vinegar","Tapioca Starch","Apple Cider Vinegar","Garlic Powder","Organic Tomatoes","Basil","Distilled Vinegar","Yeast Extract","Organic Lemon Juice Concentrate","Vinegar","Organic Lemon Juice","Organic Rosemary Extract","Organic Tomato Juice","Organic Tomato Paste","Sugar","Tomato Paste","Ascorbic Acid","Organic Basil","Onion","Onions","Organic Tomato Puree","Lime Juice Concentrate","Organic Balsamic Vinegar","Organic Cilantro","Organic Extra Virgin Olive Oil","Organic Vinegar","Paprika","Olive Oil","Organic Coconut Aminos","Cumin","Ginger","Natural Smoke Flavor","Nutritional Yeast","Organic Cane Sugar","Organic Guar Gum","Organic Mustard","Organic Onion","Organic Sugar","Lemon Juice Concentrate","Oregano","Organic Cumin","Organic Oregano","Cilantro","Dehydrated Garlic","Lime Juice","Organic Red Wine Vinegar","Organic Tapioca Starch","Tomato Puree","Cane Sugar","Coriander","High Oleic Sunflower Oil","Natural Flavor","Natural Flavors","Organic Dijon Mustard","Organic Gum Acacia","Organic Sunflower Oil","Parmesan Cheese","Sesame Oil","Tomatoes","Turmeric","Cheddar Cheese","Dehydrated Onion","Dill","Organic Date Paste","Organic Egg Yolks","Organic Eggs","Organic High Oleic Sunflower Oil","Organic Onions","Parsley","Red Bell Pepper","Rosemary Extract","Cane Vinegar","Cashews","Coconut Sugar","Italian Whole Peeled Tomatoes","Monkfruit Extract","Organic Cayenne Pepper","Organic Diced Tomatoes","Organic Green Bell Peppers","Organic Green Chile Peppers","Organic Lime Juice Concentrate","Roasted Garlic","Rosemary","Shallots","Carrots","Cauliflower","Cayenne Pepper","Cinnamon","Coconut Aminos","Coconut Milk","Cucumbers","Dried Onion","Lemon Zest","Maltodextrin","Mustard Flour","Organic Certified Humane Free Range Egg Yolks","Organic Chipotle Powder","Organic Coriander","Organic Cucumbers","Organic Ginger","Organic Honey","Organic Jalapeno Peppers","Organic Mustard Seed","Organic Plum Tomatoes","Organic Soybeans","Organic Turmeric","Pumpkin Seed Butter","Smoked Paprika","Thai Chilis","Thyme","Acacia Gum","Allspice","Artichoke","Black Ground Pepper","Brown Sugar","Chipotle Powder","Chopped Tomatoes","Coconut Oil","Dill Weed","Dried Chili Pepper","Expeller Pressed Oil","Fair Trade Organic Cane Sugar","Fair Trade Organic Coconut Sugar","Filtered Water","Galangal Root","Lemongrass","Lemongrass Puree","Lime","Lupini Beans","Mustard Extract","Olives","Organic Ancho Powder","Organic Carrots","Organic Celery Seed","Organic Chives","Organic Corn Starch","Organic Distilled White Vinegar","Organic Dried Onion","Organic Expeller Pressed Canola Oil and/or Organic Sunflower Oil","Organic Gum Arabic","Organic Jalapeño Peppers","Organic Kalamata Olives","Organic Natural Spice Flavors","Organic Paprika","Organic Parsley","Organic Sesame Oil","Organic Sprouted Pumpkin Seeds","Organic Sprouted Sunflower Seeds","Organic Stone Ground Yellow Corn","Organic Tomato Concentrate","Paprika Extract","Pineapple Juice Concentrate","Sesame Paste","Sprouted Mung Beans","Tomatillos","Tomato Powder","Arrowroot Powder","Canola Oil","Cashew Butter","Cayenne Pepper Sauce","Celery","Celery Seed","Chili Powder","Cloves","Coconut Cream","Cream Of Tartar","Crushed Red Pepper","Diced Tomatoes","Distilled Cane Vinegar","Dried Garlic","Egg Yolks","Green Bell Peppers","Jalapeno Peppers","Lemon","Makrut Lime Leaves","Mustard","Native Corn Starch","Non-Gmo Corn","Non-Gmo Expeller Pressed Canola and/or Safflower Oil","Organic Agave Nectar","Organic Cage Free Salted Egg Yolks","Organic Canola Oil","Organic Capers","Organic Chili Pepper","Organic Crushed Tomatoes","Organic Dehydrated Peppers","Organic Dillweed Oil","Organic Dried Garlic","Organic Egg","Organic Fire Roasted Tomatoes","Organic Fresh Basil","Organic Garlic Chips","Organic Lime Juice","Organic Mustard Flour","Organic Mustard Seeds","Organic Olives","Organic Sesame Seeds","Organic Tamarind","Pea Protein Isolate","Pineapple Concentrate","Potato Starch","Pumpkin Puree","Red Bell Peppers","Red Chili Pepper","Salted Egg Yolks","Spice","Tamarind Concentrate","Titanium Dioxide","Truff® Chili Blend","Turmeric Powder","100% Lime Juice","Alcohol","Annatto","Apple Juice Concentrate","Asiago Cheese","Balinese Sea Salt","Beets","Beyond Meat® Crumbles","Black Truffle","Black Truffle Oil Concentrate","Buttermilk","Carrot Puree","Cayenne","Cayenne Pepper Mash","Chia Seed","Chickpea Protein","Chili Pepper","Cider Vinegar","Citrus Fiber","Clove","Coconut Palm Sugar","Cultured Dextrose","Curry Powder","Dates","Dehydrated Ginger","Dehydrated Roasted Garlic","Dextrose","Dried Glucose Syrup","Evaporated Cane Juice","Expeller Pressed Canola Oil","Flaxseed","Fresh Garlic","Garlic Juice","Glycerin","Green Asparagus","Green Beans","Guar Gum","Gum Acacia","Himalayan Pink Salt","Jalapeno Pepper","Lemon Juice","Lemon Oil","Lime Leaves","Lycopene","Malic Acid","Mid Oleic Sunflower Oil","Mushroom Powder","Mustard Oil","Non-Gmo Rapeseed Oil","Non-Gmo Soybean Oil","Olive Oil Infused With Black Truffle Essence","Onion Extract","Orange Juice Concentrate","Organic Alcohol","Organic Allspice","Organic Aquafaba","Organic Baker's Yeast","Organic Cage-Free Eggs","Organic Cayenne","Organic Chipotle Pepper","Organic Cinnamon","Organic Clove","Organic Coconut Tree Sap","Organic Cream","Organic Dates","Organic Dehydrated Onions","Organic Dill","Organic Dried Cane Syrup","Organic Fair Trade Coconut Flower Blossom Nectar","Organic Flavor","Organic Fresh Garlic","Organic Fresh Onions","Organic Ground Ginger","Organic Jalapeno Powder","Organic Orange Juice Concentrate","Organic Pineapple Juice Concentrate","Organic Raw Cane Sugar","Organic Red Pepper","Organic Rice","Organic Roasted Garlic","Organic Sea Salt","Organic Smoked Paprika","Organic Stone Ground Mustard","Organic Stoneground Mustard","Organic Thyme","Organic Vodka","Organic White Vinegar","Organic Whole Eggs","Organic Whole Peeled Tomatoes","Organic Yeast Extract","Organic Yellow Mustard","Organic Yogurt","Pepper Jack Cheese","Pine Nuts","Pineapple Juice","Red Wine","Roasted Poblano Chilies","Serrano Peppers","Shiitake Mushroom","Shiitake Mushrooms","Soybeans","Spice Extractive","Tahini","Tamarind Juice","Tangerine Juice Concentrate","Tricalcium Phosphate","Vegan Natural Flavors","Vegetable Oil","White Pepper","White Vinegar","Yeast","Acetic Acid","Achiote Paste","Aged Red Peppers","All Spice","Almonds","Anaheim Peppers","Ancho Powder","Anchovy","Annatto Extract","Apple Juice","Apple Juice Concetrate","Apples","Artichoke Hearts","Artichokes","Avocado Oil Tapioca Starch","Balsamic Vinegar","Balsamic Vinegar Powder","Beet","Beta Carotene","Black Truffle Salt","Black Winter Truffle [Tuber Melanosporum]","Blue Cheese","Brazil Nuts","Butter","Cage Free Salted Egg Yolks","Calabrian Chili Peppers","Capia Pepper","Cardamom","Cassava Flour","Cayenne Powder","Celery Puree","Certified Humane Free Range Egg Yolks","Cheese Blend","Cheese Cultures","Cherries","Chia Seeds","Chicken Fat","Chicken Stock","Chickpeas","Chile Pepper Flakes","Chile Powder","Chili Extract","Chilies","Chipotle Pepper Powder","Cinnamon Sticks","Citric Acid Pita Chips: Corn Flour","Coconut Nectar","Corn","Corn Flour","Corn Starch","Cracked Brown Mustard Seeds","Cracked Mustard Seeds","Cream Cheese","Crushed Tomatoes","De Arbol Powder","Dehydrated Orange Peel","Dehydrated Oregano","Dehydrated Thyme","Dehydrated Tomato","Diced Green Chiles","Diced Jalapeños","Disodium Phosphate","Dried Cane Syrup","Dried Chives","Dried Dill","Dried Ginger","Dried Oregano","Dried Peppers","Dried Shiitake Mushroom","Egg Yolk","Elderberry Juice Concentrate","Enzyme Modified Egg Yolks","Enzymens","Fava Bean Protein Powder","Fermented Black Bean","Fish Sauce","Flax Seeds","Fresh Basil","Fresh Ginger","Fresh Onions","Fruit and Vegetable Concentrate","Galangal","Garlic Minced","Garlic Oil","Ginger Powder","Ginger Puree","Gochujang Paste","Golden Beets","Grana Padano Cheese","Granulated Onion","Grape Leaves","Grape Must","Grated Grana Padano Cheese","Greek Pepperoncini","Green Anaheim Pepper Puree","Green Bell Pepper Powder","Green Chile Puree","Green Jalapeño Peppers","Green Onions","Ground Chia Seeds","Ground Sesame Seed Paste","Habanero Chili","Habanero Pepper","Habanero Peppers","Halkidiki Olives","Hard Grated Cheese","Heavy Cream","Herbs","Herbs & Spices","High Oleic Safflower Oil","Honey","Horseradish","Hot Peppers","Hydrolized Corn","Imported Italian Plum Tomatoes","Inactive Yeast","Italian Cherry Tomatoes","Italian Style Meatball Crumbles","Jalapeño","Jalapeño Peppers","Jalapeños","Jicama Juice Concentrate","Kabocha Squash","Kalamata Olives","Koji","Konjac","Konjac Root","Kosher Salt","Lemon Peel","Lemongrass Puree Pure","Lemons","Licorice Powder","Light Cream","Lime Granules","Lime Oil","Locust Bean Gum","Malt Syrup","Maple Syrup","Marjoram","Mineral-Rich Sea Salt","Mint","Mirin","Modified Acacia Gum","Modified Corn Starch","Modified Cornstarch","Molasses","Mustard Bran","Mustard Seed","Natural Color","Natural Dill Extract","Natural Hickory Smoke Flavor","Natural Liquid Smoke","New Mexico Chile Pepper","Non-Gmo Agar Agar","Non-Gmo Distilled Vinegar","Non-Gmo Fermented Black Bean","Non-Gmo Nutritional Yeast","Non-Gmo Smoked Paprika","Non-Gmo Sunflower Oil","Nonfat Milk","Nutmeg","Ogranic Smoke Paprika","Oleoresin Turmeric","Olive Oil Infused With White Truffle Essence","Orange Juice","Orange Peel","Oregano Powder","Organic Ancho Chili Pepper","Organic Balsamic","Organic Basil Leaf","Organic Bay Leaf","Organic Black Botija Olives","Organic Blackstrap Molasses","Organic Blue Agave Nectar","Organic Brined Red Jalapeno Pepper Puree","Organic Brown Rice","Organic Buckwheat Flour","Organic Cabbage","Organic Cage-Free Egg Yolks","Organic Caramel Color","Organic Carrot","Organic Carrot Puree","Organic Celery","Organic Chickpea Broth","Organic Chickpea Miso","Organic Cider Vinegar","Organic Cloves","Organic Cocoa Powder","Organic Coconut Nectar","Organic Coconut Sugar","Organic Concentrated Grape Must","Organic Cranberries","Organic Crushed Red Chile Pepper","Organic Crushed Red Chiles","Organic Crushed Tomato","Organic Cultured Dextrose","Organic Date Puree","Organic Dehydrated Carrots","Organic Dehydrated Garlic","Organic Dehydrated Onion","Organic Dried Cane Juice","Organic Dried Chili Pepper","Organic Dried Dill","Organic Dried Kelp","Organic Dried Minced Onion","Organic Dried Onions","Organic Egg Yolk","Organic Fennel","Organic Fire Roasted Diced Tomatoes","Organic Florina Red Peppers","Organic Fresh Onion","Organic Fresh Roasted Garlic","Organic Fruit and Vegetable Juice","Organic Ginger Extract","Organic Gluten Free Soy Sauce","Organic Green Olives","Organic Ground Black Pepper","Organic Ground Cayenne","Organic Ground Mustard Seed","Organic Gums","Organic Heavy Cream","Organic Horseradish","Organic Jalapeno Pepper Sauce","Organic Jalapenos","Organic Jalapeños","Organic Jalepeno Sauce","Organic Kelp","Organic Lemon Oil","Organic Lime Oil","Organic Limeoil","Organic Maltodextrin","Organic Mango Puree","Organic Marjoram","Organic Molasses","Organic Moringa Powder","Organic Mushroom Powder","Organic Mustard Powder","Organic Natural Flavor","Organic Nutritional Yeast","Organic Oil Of Oregano","Organic Olive Oil","Organic Onion Power","Organic Orange Juice","Organic Palm Oil","Organic Paprika Powder","Organic Peeled Tomatoes","Organic Raisin Juice Concentrate","Organic Red Beet Powder","Organic Red Bell Pepper","Organic Red Bell Pepper Puree","Organic Red Jalapeno Peppers","Organic Roasted Chili Pepper","Organic Roasted Florina Red Peppers","Organic Sage","Organic Savory","Organic Sliced Kalamata Olives","Organic Soy Sauce","Organic Spinach Powder","Organic Strained Tomatoes","Organic Sunflower Lecithin","Organic Tamari Soy Sauce","Organic Tamarind Paste","Organic Tapioca Stach","Organic Tomato Pulp","Organic Turmeric Oleoresin","Organic Vanilla Extract","Organic Water","Organic Wheat","Organic White Balsamic Vinegar","Organic White Vinegar Powder","Organic Wine Vinegar","Paprika Cayenne Powder","Parmesan","Pesto Blend","Pickle Relish","Poblano Chiles","Porcini Powder","Potato and Barley Malt Syrup","Potato Flakes","Puya Pepper","Raw Cane Sugar","Red Crushed Pepper","Red Jalapeño","Red Pepper","Red Pepper Powder","Red Peppers","Red Wine Vinegar","Refined Coconut Oil","Rice","Rice Vinegar","Rice Wine Vinegar","Ripe Red Jalapeños","Roasted Eggplant","Roasted Green Tomatoes","Roasted Jalapenos Peppers","Roasted Peppers","Roasted Red Pepper: Cauliflower","Roasted Red Peppers","Roasted Tomatoes","Romano Cheese","Salted Egg Yolk","Salted Shochu","Seaweed","Sesame Seed","Sesame Seeds","Shoyu","Sichuan Pepper","Skim Milk","Smoked Salt","Smoked Sea Salt","Soy","Soy Protein","Soybean Flour","Stevia Leaf Extract","Sudachi Juice","Sun Dried Tomatoes","Sunflower Lecithin","Sweet Rice Powder","Tamari","Tamarind Paste","Tamarind Puree","Tamarind Seed Gum","Tarragon","Thai Basil Puree","Toasted Sesame Oil","Toasted Sesame Seeds","Tomato","Tomato Pulp","Truffle Pepper Blend","Uncured Pancetta Crumbles","Vegan Natural Flavours","Vegetable Protein","Vinegar Powder","Walnuts","Wheat Flour","Whey","White Vinegar Powder","Xantham Gum","Yellow Onion","Yuzu Juice"],"freq":[168,160,115,84,60,42,41,39,36,35,34,34,31,29,28,24,24,24,23,23,22,22,21,21,21,20,20,20,19,19,18,18,16,16,16,16,15,15,14,14,14,13,13,13,13,13,13,12,12,11,11,11,11,11,11,11,11,11,10,10,10,10,9,9,9,9,9,9,8,8,8,8,8,8,8,8,8,8,8,8,7,7,7,7,7,7,7,7,7,7,7,6,6,6,6,6,6,6,6,6,6,6,6,6,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"fontFamily":"Segoe UI","fontWeight":"bold","color":"random-dark","minSize":0,"weightFactor":1.60714285714286,"backgroundColor":"white","gridSize":0,"minRotation":-0.785398163397448,"maxRotation":0.785398163397448,"shuffle":false,"rotateRatio":0.4,"shape":"circle","ellipticity":0.65,"figBase64":null,"hover":null},"evals":[],"jsHooks":{"render":[{"code":"function(el,x){\n                        console.log(123);\n                        if(!iii){\n                          window.location.reload();\n                          iii = False;\n\n                        }\n  }","data":null}]}}</script>
+</div>
+</div>
+<div id="tiny-models-big-dreams-simple-regressions" class="section level2">
+<h2>Tiny Models, Big Dreams / Simple Regressions</h2>
+<p>I ran a series of linear and multiple regressions to determine the relationship between individual Thrive Market features and specific outcomes: price, engagement (number of ratings), and customer satisfactions (average rating). What follows are key insights drawn from a series of linear and multiple regressions.</p>
+<div id="price" class="section level3">
+<h3>Price</h3>
+<div id="promoting-gluten-free-as-a-value-justifies-an-18-increase-in-price." class="section level4">
+<h4><strong>Promoting gluten-free as a value justifies an 18% increase in price.</strong></h4>
+<p>Gluten-free as a value has a positive relationship with price. The linear model above demonstrates that for every one-unit increase in gluten-free (as a promoted value), the price increases by about 18%. For example, a sauce entrepreneur would be justified in charging an additional $1.80 to a $10.00 jar of sauce if it is gluten-free.</p>
+<pre class="r"><code>get_regression_table(model1a)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term      estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept    1.72      0.083     20.6    0        1.55     1.88 
+## 2 gfTRUE       0.163     0.091      1.78   0.076   -0.017    0.343</code></pre>
+<pre class="r"><code>((exp(0.163)-1)*100) ## Outcome is log; exponentiate the coefficient to determine % increase</code></pre>
+<pre><code>## [1] 17.70367</code></pre>
+</div>
+<div id="including-flavor-in-the-product-description-justifies-a-3-increase-in-price." class="section level4">
+<h4><strong>Including “flavor” in the product description justifies a 3% increase in price.</strong></h4>
+<p>The linear model indicates that for every one-unit increase in “flavor” as a product descriptor, there is a 3% increase in price. In other words, a sauce maker would be justified in charging an additional 30¢ to a $10.00 jar of sauce if it includes “flavor” in the product description.</p>
+<pre class="r"><code>get_regression_table(model1b)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term       estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept      1.84     0.047    39.4     0        1.75     1.93 
+## 2 flavorTRUE     0.03     0.07      0.426   0.671   -0.107    0.167</code></pre>
+</div>
+<div id="more-ingredients-justifies-a-1.2-increase-in-price." class="section level4">
+<h4><strong>More ingredients justifies a 1.2% increase in price.</strong></h4>
+<p>The linear model shows that for every one-unit increase in ingredients, there is a 1.2% increase in price. For instance, a sauce entrepreneur would be justified in charging $0.12 for each added ingredient found in a $10.00 jar of sauce.</p>
+<pre class="r"><code>get_regression_table(model1c)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term              estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept            1.74      0.078     22.3    0        1.58     1.89 
+## 2 ingredients_count    0.012     0.007      1.64   0.102   -0.002    0.026</code></pre>
+</div>
+<div id="other-features-produced-a-decrease-in-price." class="section level4">
+<h4><strong>Other features produced a decrease in price.</strong></h4>
+<p>The remaining features demonstrated a negative relationship to price. Individual linear models on each value revealed the following pattern:</p>
+<ul>
+<li>For every one-unit increase in non-GMO as a promoted value, prices decreases by 17%.</li>
+<li>For plant-based, price decreases by about 20%.</li>
+<li>For veggie, price decreases by 21%.</li>
+<li>For vegan, price decreases by 25%.</li>
+<li>For organic, price decreases by 14%.</li>
+<li>For number of values, price decreases by 3%.</li>
+</ul>
+</div>
+<div id="combining-important-features-can-further-drive-up-price" class="section level4">
+<h4><strong>Combining important features can further drive up price!</strong></h4>
+<p>The effect of individual features created curiosity about their cumulative impact on price. <em>How does having a gluten-free value and “flavor” in the product description affect price?</em></p>
+<p>The multiple regression suggests that upholding gluten-free as a value and “flavor” as a descriptor increases price by a total of 21%. We would be justified in adding $2.10 to a $10.00 jar of sauce if we advertise gluten-free values and use “flavor” in the product description.</p>
+<pre class="r"><code>get_regression_table(model1d)</code></pre>
+<pre><code>## # A tibble: 3 × 7
+##   term       estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     1.71      0.088    19.4     0        1.53     1.88 
+## 2 gfTRUE        0.162     0.092     1.76    0.078   -0.019    0.342
+## 3 flavorTRUE    0.025     0.07      0.359   0.72    -0.112    0.162</code></pre>
+</div>
+</div>
+<div id="engagement" class="section level3">
+<h3>Engagement</h3>
+<div id="the-crowds-have-lots-to-say-about-non-gmo-organic-veggie-gluten-free-or-flavorful-products" class="section level4">
+<h4>The crowds have lots to say about non-GMO, organic, veggie, gluten-free, or flavorful products!</h4>
+<p>There were quite a few positive relationships between individual features and engagement or the number of total ratings.</p>
+<ul>
+<li>A non-GMO value increases engagement by 130%.</li>
+<li>For organic, engagement increases by 89%.</li>
+<li>For veggie, engagement increases by 60%.</li>
+<li>For gluten-free, engagement increases by 27%.</li>
+<li>For flavor, engagement increases by 22%.</li>
+</ul>
+<pre class="r"><code>get_regression_table(model2a)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term        estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept      4.62      0.413     11.2    0        3.80      5.43
+## 2 non_GMOTRUE    0.835     0.417      2.00   0.046    0.014     1.66</code></pre>
+<pre class="r"><code>((exp(0.835)-1)*100) ## Non-GMO</code></pre>
+<pre><code>## [1] 130.4814</code></pre>
+</div>
+<div id="again-combining-features-can-further-drive-up-engagement" class="section level4">
+<h4>Again, combining features can further drive up engagement!</h4>
+<pre class="r"><code>get_regression_table(model2b)</code></pre>
+<pre><code>## # A tibble: 3 × 7
+##   term       estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     5.15      0.157     32.8    0        4.84     5.46 
+## 2 gfTRUE        0.23      0.163      1.41   0.16    -0.091    0.552
+## 3 flavorTRUE    0.193     0.124      1.56   0.121   -0.051    0.437</code></pre>
+<pre class="r"><code>((exp(0.2302)-1)*100) # Gluten-Free</code></pre>
+<pre><code>## [1] 25.88518</code></pre>
+<pre class="r"><code>((exp(0.193)-1)*100) # Flavor</code></pre>
+<pre><code>## [1] 21.28828</code></pre>
+</div>
+</div>
+<div id="customer-satisfaction" class="section level3">
+<h3>Customer Satisfaction</h3>
+<div id="thrive-market-customers-enjoy-organic-and-flavorful-products-the-most" class="section level4">
+<h4><strong>Thrive Market customers enjoy organic and flavorful products the most!</strong></h4>
+<ul>
+<li>A product described as organic has a 3% increase in customer satisfaction compared to a conventional product.</li>
+<li>A product described as flavorful has a 2.2% increase in customer satisfaction compared to a product not labeled as such.</li>
+</ul>
+<pre class="r"><code>get_regression_table(model3a)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term        estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept      1.48      0.005    290.     0         1.47    1.49 
+## 2 organicTRUE    0.029     0.01       3.05   0.002     0.01    0.048</code></pre>
+<pre class="r"><code>((exp(0.029)-1)*100) # Organic</code></pre>
+<pre><code>## [1] 2.942459</code></pre>
+<pre class="r"><code>get_regression_table(model3b)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term       estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     1.48      0.006    252.     0        1.47     1.49 
+## 2 flavorTRUE    0.022     0.009      2.48   0.014    0.004    0.039</code></pre>
+<pre class="r"><code>((exp(0.022)-1)*100) # Flavor</code></pre>
+<pre><code>## [1] 2.224378</code></pre>
+</div>
+<div id="beware-a-product-advertised-as-gluten-free-and-described-as-flavorful-drives-down-rating-by-0.7" class="section level4">
+<h4><strong>Beware! A product advertised as gluten-free and described as flavorful drives down rating by 0.7%!</strong></h4>
+<pre class="r"><code>get_regression_table(model3c)</code></pre>
+<pre><code>## # A tibble: 3 × 7
+##   term       estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     1.50      0.011    137.     0        1.48     1.53 
+## 2 gfTRUE       -0.031     0.011     -2.73   0.007   -0.054   -0.009
+## 3 flavorTRUE    0.023     0.009      2.60   0.01     0.006    0.04</code></pre>
+<pre class="r"><code>((exp(-0.031)-1)*100) # Gluten-Free</code></pre>
+<pre><code>## [1] -3.052443</code></pre>
+<pre class="r"><code>((exp(0.023)-1)*100) # Flavor</code></pre>
+<pre><code>## [1] 2.326654</code></pre>
+</div>
+<div id="thrive-market-customers-are-less-satisfied-with-products-promoted-as-gluten-free-and-non-gmo." class="section level4">
+<h4><strong>Thrive Market customers are less satisfied with products promoted as gluten-free and non-GMO.</strong></h4>
+<ul>
+<li>A product advertised as gluten-free has a 3% decrease in customer satisfaction.</li>
+<li>A product labeled as non-GMO has a 1.1% decrease in customer satisfaction.</li>
+</ul>
+<pre class="r"><code>get_regression_table(model3d)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term      estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     1.51     0.01     144.      0       1.49     1.53 
+## 2 gfTRUE       -0.03     0.012     -2.60    0.01   -0.053   -0.007</code></pre>
+<pre class="r"><code>get_regression_table(model3e)</code></pre>
+<pre><code>## # A tibble: 2 × 7
+##   term        estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept      1.50      0.029    50.9     0        1.44     1.56 
+## 2 non_GMOTRUE   -0.011     0.03     -0.365   0.715   -0.069    0.048</code></pre>
+</div>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>The goal of this project was to analyze product features and customer ratings on 322 condiments and sauces available at Thrive Market. The higher aspiration of developing a differentiation strategy may have been too ambitious for a nugget-sized dataset. It may be attained with a gargantuan dataset or more robust variables. Nevertheless, the results provided some intelligence on the impact of values on price, drivers of engagement, and even contributors to high ratings.</p>
+<div id="the-final-recipe-for-success" class="section level3">
+<h3><strong>The Final Recipe for Success:</strong></h3>
+<p>Promote your product as gluten-free and flavorful to:</p>
+<ul>
+<li>increase price by 21%.</li>
+<li>increase engagement by 47%</li>
+<li>but this will decrease average rating by 0.7%.</li>
+</ul>
+</div>
+</div>
