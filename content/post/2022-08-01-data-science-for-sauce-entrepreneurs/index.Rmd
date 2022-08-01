@@ -271,7 +271,7 @@ get_regression_table(model1a)
 ```
 
 ```{r}
-((exp(0.163)-1)*100) ## Outcome is log; exponentiate the coefficient to determine % increase
+((exp(0.163)-1)*100) ## Only outcome is log-transformed; exponentiate the coefficient to determine % increase
 ```
 
 #### **Including “flavor” in the product description justifies a 3% increase in price.**
